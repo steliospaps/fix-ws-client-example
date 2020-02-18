@@ -11,7 +11,9 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
     "react-stockcharts": "^0.7.8",
-    "timestamp-nano": "^1.0.0"
+    "shards-react": "^1.0.3",
+    "timestamp-nano": "^1.0.0",
+    "uuid": "^3.3.3"
   },
   "scripts": {
     "start": "react-scripts start",

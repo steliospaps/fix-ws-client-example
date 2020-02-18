@@ -1,0 +1,51 @@
+.quote-container {
+  margin: 10px;
+  cursor: pointer;
+}
+
+.quote-container .quote-symbol {
+  display: flex;
+  justify-content: center;
+}
+
+.quote-container .quote-directions {
+  color: #fff;
+}
+
+.quote-container .quote-buy .quote-sell {
+  color: #fff;
+}
+
+.quote-container .quote-buy {
+  background-color: #57ca57;
+}
+
+.quote-container .quote-sell {
+  background-color: #ffa1a1;
+}
+
+.quote-container .quote-buy.quote-buy--selected {
+  background-color: blue;
+}
+
+.quote-container .quote-sell.quote-sell--selected {
+  background-color: red;
+}
+
+.quote-container .quote-symbol {
+  height: 48px;
+  align-items: center;
+  cursor: default;
+}
+
+@media (min-width: 576px) {
+  .quote-container.col-md-6 {
+    max-width: 46%;
+  }
+}
+
+@media (min-width: 992px) {
+  .quote-container.col-lg-3 {
+    max-width: 23%;
+  }
+}

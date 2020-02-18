@@ -1,0 +1,15 @@
+.pre-trade-container .pre-trade-button {
+  margin-top: 10px;
+}
+
+.pre-trade-container .buy-button--selected .quote-buy {
+  background-color: green;
+}
+
+.pre-trade-container .sell-button--selected .quote-sell {
+  background-color: red;
+}
+
+.pre-trade-container .quotes-container {
+  flex-direction: center;
+}

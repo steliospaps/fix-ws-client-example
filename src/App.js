@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Link, Switch, Route } from 'react-router-dom';
+import { Nav, Navbar, NavbarBrand, NavItem, NavLink, Button, Container } from 'shards-react';
+import { BrowserRouter as Router, Link, Switch, Route} from 'react-router-dom';
 import IGWebsocketService from './services/ig-websocket-service';
 import OAuthService from './services/auth-service';
-
-import Charts from './charts';
-import Login from './login';
-import PreTrade from './pre-trade';
+import Login from './component/login';
+import PreTrade from './component/pre-trade';
+import PreTradeServiceComponent from './services/pre-trade-service';
+import AuthenticatedRoute from './component/route/authenticated-route';
+import RedirectRoute from './component/route/redirect-route';
 
 import './App.css';
+import "bootstrap/dist/css/bootstrap.min.css";
+import "shards-ui/dist/css/shards.min.css"
 
 export default function App() {
   const [ isConnected, setIsConnected ] = useState(false);
@@ -17,6 +21,7 @@ export default function App() {
   const [ authService, setAuthService ] = useState(null);
   const [ service, setService ] = useState(null);
   const [ historicCandleData, setHistoricCandleData ] = useState([]);
+  const [ chartSubscriptionData, setChartSubscriptionData ] = useState({});
   const [ loginMessage, setLoginMessage ] = useState({});
   const [ quoteMessage, setQuoteMessage ] = useState({});
 
@@ -29,6 +34,7 @@ export default function App() {
     setIsEstablish(false);
     setIsLoginSuccessful(false);
     setHeartbeatEnabled(false);
+    setIsLoginSuccessful(false);
   }
 
   function handleLoginSuccessful() {
@@ -43,96 +49,103 @@ export default function App() {
       service.stopHeartbeat();
       service.close();
     } else {
-      const service = new IGWebsocketService(process.env.REACT_APP_WEBSOCKET_URL);
       setAuthService(new OAuthService())
-      setService(service);
+      setService(new IGWebsocketService(process.env.REACT_APP_WEBSOCKET_URL));
       setIsConnected(true);
+    }
+  }
 
-      if (service) {
-        service.fixpWebsocket.onopen = () => {
-          setIsConnected(true);
-        }
-
-        service.fixpWebsocket.onerror = () => {
-          resetState();
-        }
-
-        service.fixpWebsocket.onclose = () => {
-          resetState();
-        }
-
-        service.fixpWebsocket.onmessage = (wsMessage) => {
-          const { data } = wsMessage;
-          const parseMessage = JSON.parse(data);
-          if (parseMessage) {
-            const { MessageType, MsgType } = parseMessage;
-            if (MessageType) {
-              if (MessageType === "NegotiationResponse" || MessageType === "EstablishmentAck") {
-                setLoginMessage(parseMessage);
-              }
-            } else if (MsgType) {
-              switch(MsgType) {
-                case "Quote":
-                  setQuoteMessage(parseMessage);
-                  break;
-                case "HistoricCandleResponse":
-                  setHistoricCandleData(parseMessage.CandleData);
-                  break;
-                default:
-                  console.log(parseMessage)
-              }
-            }
-          }
-        }
+  function handlePreTradeMessages(message) {
+    const { MessageType, MsgType } = message;
+    if (MessageType) {
+      if (MessageType === "NegotiationResponse" || MessageType === "EstablishmentAck") {
+        setLoginMessage(message);
       }
-
+    } else if (MsgType) {
+      switch(MsgType) {
+        case "Quote":
+          setQuoteMessage(message);
+          break;
+        case "HistoricCandleResponse":
+          setHistoricCandleData(message.CandleData);
+          break;
+        case "ChartDataSubscriptionResponse":
+          setChartSubscriptionData(message)
+          break;
+        default:
+          console.log(message)
+      }
     }
   }
 
   return (
     <div>
+      <PreTradeServiceComponent
+        onMessage={handlePreTradeMessages}
+        onOpen={() => setIsConnected(true)}
+        onError={() => resetState()}
+        onClose={() => resetState()}
+        service={service}
+      />
       <Router>
         <div className="App">
-          <div>
-            <ul>
-              <li><Link to="/login">Login</Link> </li>
-              <li><Link to="/pre-trade">Pre-Trade</Link> </li>
-              <li><Link to="/charts">Charts</Link> </li>
-            </ul>
+          <Navbar type="dark" theme="danger" expand="md">
+            <NavbarBrand href="#">Example Client</NavbarBrand>
+            <Nav navbar>
+              {!isLoginSuccessful ? (
+              <NavItem>
+                <Link className="nav-link active" to="/login">Login</Link>
+              </NavItem>) : (
+                <div style={{'display': 'inherit'}}>
+                  <NavItem>
+                    <Link className="nav-link active" to="/pre-trade">Trade</Link>
+                  </NavItem>
+                </div>
+              )}
+            </Nav>
+            <Nav navbar className="ml-auto">
+              <NavItem>
+                <NavLink active>
+                  Status: {isConnected ?  'Connected': 'Closed'}
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink>
+                  <Button className="button-navbar" theme="secondary" value={isConnected ? 'Disconnect' : 'Connect' } onClick={handleConnection}>
+                    {isConnected ? 'Disconnect' : 'Connect' }
+                  </Button>
+                </NavLink>
+              </NavItem>
+            </Nav>
+          </Navbar>
+        </div>
+        <Container>
+          <div className="router-view">
+            <Switch>
+              <RedirectRoute condition={isEstablish} path="/" exact />
+              <Route path="/login">
+                <Login
+                  service={service}
+                  authService={authService}
+                  message={loginMessage}
+                  heartbeatEnabled={heartbeatEnabled}
+                  isConnected={isConnected}
+                  isLoginSuccessful={isLoginSuccessful}
+                  onLoginSuccessful={handleLoginSuccessful}
+                />
+              </Route>
+              <AuthenticatedRoute condition={isEstablish} path="/pre-trade">
+                <PreTrade
+                  isEstablish={isEstablish}
+                  quoteMessage={quoteMessage}
+                  service={service}
+                  candleData={historicCandleData}
+                  candleSubscriptionData={chartSubscriptionData}
+                />
+              </AuthenticatedRoute>
+            </Switch>
           </div>
-          <strong>Websocket status: {isConnected ?  'Connected': 'Closed'}</strong>
-          <input type="button" value={isConnected ? 'Disconnect' : 'Connect' } onClick={handleConnection} />
-        </div>
-        <div className="router-view">
-          <Switch>
-            <Route path="/" exact></Route>
-            <Route path="/login">
-              <Login 
-                service={service}
-                authService={authService}
-                message={loginMessage}
-                heartbeatEnabled={heartbeatEnabled}
-                isConnected={isConnected}
-                isLoginSuccessful={isLoginSuccessful}
-                onLoginSuccessful={handleLoginSuccessful}
-              />
-            </Route>
-            <Route path="/pre-trade">
-              <PreTrade
-                isEstablish={isEstablish}
-                quoteMessage={quoteMessage}
-                service={service}
-              />
-            </Route>
-            <Route path="/charts">
-              <Charts
-                isLoginSuccessful={isLoginSuccessful}
-                candleData={historicCandleData}
-                service={service}
-              />
-            </Route>
-          </Switch>
-        </div>
+        </Container>
       </Router>
     </div>
   );

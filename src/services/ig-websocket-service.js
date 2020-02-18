@@ -1,7 +1,11 @@
 import * as Timestamp from 'timestamp-nano';
-import { format } from 'date-fns';
 
 export const DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+export const SUBSCRIPTION_REQUEST_TYPE = {
+  SUBSCRIBE: "SnapshotAndUpdates",
+  UNSUBSCRIBE: "DisablePreviousSnapshot"
+}
 
 export default class IGWebsocketService {
   fixpWebsocket = null;
@@ -77,42 +81,8 @@ export default class IGWebsocketService {
     this.heartbeatInterval = null;
   }
 
-  subscribeToSymbol(symbol, quoteId) {
-    const quoteRequest = {
-      ...this._buildHeader("QuoteRequest"),
-      QuoteReqID: quoteId,
-      QuotReqGrp: [
-        { Symbol: symbol }
-      ],
-      Trailer: {}
-    }
-
-    this.send(quoteRequest);
-  }
-
-  getChartsSnapshot(chartSnapshotRequest) {
-    const { startDate, endDate, symbol, interval, reqId } = chartSnapshotRequest;
-    let chartRequest = {
-      ...this._buildHeader("HistoricCandleRequest"),
-      ReqID: reqId,
-      Symbol: symbol,
-      Interval: interval,
-      StartDate: startDate,
-      EndDate:endDate
-    }
-    this.send(chartRequest);
-  }
-
   _generateTimestamp() {
     const date = Timestamp.fromDate(new Date());
     return parseInt(String(date.getTimeT()) + String(date.getNano()));
-  }
-
-  _generateSendingTime() {
-    return format(new Date(), DATETIME_FORMAT);
-  }
-
-  _buildHeader(MsgType) {
-    return { MsgType, ApplVerID: "FIX50SP2", SendingTime: this._generateSendingTime() };
   }
 }

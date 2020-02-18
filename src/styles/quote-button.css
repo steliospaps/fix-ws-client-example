@@ -1,0 +1,9 @@
+.quote-button-container .quote-button-label, .quote-button-container .quote-button-value {
+  display: flex;
+  justify-content: center;
+}
+
+.quote-button-container {
+  margin: 3px;
+  border-radius: 5px;
+}
