@@ -49,11 +49,3 @@ The app should open in the browser at:
 ```
 http://localhost:3000
 ```
-
-Example symbols to subscribe to:
-```
-AUDCAD
-AUDUSD
-CADJPY
-EURCAD
-```
