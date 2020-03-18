@@ -1,6 +1,6 @@
 import * as Timestamp from 'timestamp-nano';
 import { format } from 'date-fns';
-import { DATETIME_FORMAT } from './ig-websocket-service';
+import { DATETIME_FORMAT } from './websocket-connection';
 
 export function buildMsgType(MsgType) {
     return { MsgType, ApplVerID: "FIX50SP2", SendingTime: generateSendingTime() };

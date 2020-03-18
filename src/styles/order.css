@@ -1,0 +1,20 @@
+.order-button {
+    margin-top: 10px;
+}
+
+.order .react-datepicker-wrapper, .order .order-datepicker-container {
+    width: 100%;
+}
+
+.order .order-error, .order .order-confirm {
+    padding: 10px;
+    font-weight: bold;
+}
+
+.order .order-confirm {
+    color: #1eb91e;
+}
+
+.order .order-error {
+    color: #b90004;
+}

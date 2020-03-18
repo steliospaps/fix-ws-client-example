@@ -1,10 +1,10 @@
 import React from 'react';
-import {Col, Row} from "shards-react";
+import {Col, Row} from 'shards-react';
 import '../styles/quote-button.css';
 
 export default function QuoteButton({ direction, value, onClick, className}) {
   function handleClick() {
-    onClick(direction);
+    onClick({ direction, value });
   }
 
   return (

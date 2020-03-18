@@ -13,9 +13,19 @@ REACT_APP_OAUTH_REFRESH_URL=https://demo-api.ig.com/gateway/deal/session/refresh
 REACT_APP_OAUTH_APP_KEY=[IG API KEY]
 
 # IG FIX WEBSOCKET
-REACT_APP_WEBSOCKET_URL=[IG WEBSOCKET URL]
+REACT_APP_PRE_TRADE_WEBSOCKET_URL=[IG WEBSOCKET URL]  see table below for environment URLS
+REACT_APP_TRADE_WEBSOCKET_URL=[IG WEBSOCKET URL]  see table below for environment URLS
 REACT_APP_CLIENT_HEARTBEAT=30000
+
 ```
+
+##### Websocket URLs
+
+| ENV | Application | URL  |
+| ----|:----:| ---:|
+| TEST | Pretrade | wss://net-otapr.ig.com/pretrade |
+| TEST | Trade | wss://net-otapr.ig.com/trade |
+
 
 ### Running Application
 Install [NPM (Node Package Manager)](https://nodejs.org/en/)
@@ -38,4 +48,12 @@ The app should open in the browser at:
 
 ```
 http://localhost:3000
+```
+
+Example symbols to subscribe to:
+```
+AUDCAD
+AUDUSD
+CADJPY
+EURCAD
 ```

@@ -1,6 +1,6 @@
-import RequestIDService from "./request-id-service";
+import RequestIDService from './request-id-service';
 import { buildMsgType } from './utils';
-import {SUBSCRIPTION_REQUEST_TYPE} from "./ig-websocket-service";
+import {SUBSCRIPTION_REQUEST_TYPE} from './websocket-connection';
 
 export default class ChartService {
   chartDataRequests = [];
@@ -29,6 +29,7 @@ export default class ChartService {
         this.chartDataRequests.splice(foundIndex, 1);
       }
     }
+
     let chartDataSubscription = {
       ...buildMsgType("ChartDataSubscriptionRequest"),
       SubscriptionRequestType,
@@ -36,7 +37,7 @@ export default class ChartService {
       SecurityID: Symbol,
       SecurityIDSource:"MarketplaceAssignedIdentifier",
       Interval
-    }
+    };
     this.websocketService.send(chartDataSubscription);
   }
 
@@ -51,7 +52,16 @@ export default class ChartService {
       Interval: interval,
       StartDate: startDate,
       EndDate:endDate
-    }
+    };
     this.websocketService.send(chartRequest);
+  }
+
+  unsubscribeAll() {
+    if(this.chartDataRequests.length > 0) {
+      this.chartDataRequests.forEach(chartRequest => {
+        this.getChartDataSubscription({symbol: chartRequest.symbol, interval: chartRequest.interval, type: SUBSCRIPTION_REQUEST_TYPE.UNSUBSCRIBE});
+      });
+      this.chartDataRequests = [];
+    }
   }
 }

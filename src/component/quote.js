@@ -1,20 +1,19 @@
 import React, {useState} from 'react';
-import {Col, Row} from "shards-react";
+import {Col, Row} from 'shards-react';
 import QuoteButton from './quote-button';
 import '../styles/quote.css';
 
 const DIRECTION = {
   BID: "BID",
   ASK: "ASK",
-}
+};
 
-export default function Quote(props) {
-  const { symbol, buy, sell, onDirectionClick, className} = props;
+export default function Quote({ symbol, securityId, buy, sell, onDirectionClick, className}) {
   const [ buyClass ] = useState("quote-buy");
   const [ sellClass ] = useState("quote-sell");
 
-  function handleClick(direction) {
-    onDirectionClick({ direction, symbol });
+  function handleClick({ direction, value }) {
+    onDirectionClick({ direction, securityId, symbol, value: +value });
   }
 
   return (

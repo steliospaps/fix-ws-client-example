@@ -5,19 +5,21 @@ export const DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 export const SUBSCRIPTION_REQUEST_TYPE = {
   SUBSCRIBE: "SnapshotAndUpdates",
   UNSUBSCRIBE: "DisablePreviousSnapshot"
-}
+};
+export const WEBSOCKET_SOURCE = {
+  PRE_TRADE: "PreTrade",
+  TRADE: "Trade",
+};
 
-export default class IGWebsocketService {
+export default class WebsocketConnection {
   fixpWebsocket = null;
-  url = "";
   sessionId = "";
   credentials = "";
   credentialsType = "";
   heartbeatInterval = null;
-  heartbeatIntervalAmount = null;
+  heartbeatIntervalAmount = 30000;
 
   constructor(url) {
-    this.url = url;
     this.fixpWebsocket = new WebSocket(url);
   }
 
@@ -44,7 +46,7 @@ export default class IGWebsocketService {
       SessionId: sessionId,
       ClientFlow:"Unsequenced",
       Credentials: {
-        CredentialsType:  credentialsType,
+        CredentialsType: credentialsType,
         Token: credentials
       }
     };
@@ -63,17 +65,13 @@ export default class IGWebsocketService {
     this.send(establish);
   }
 
-  setHeartbeatInvervalAmount(amount) {
-    this.heartbeatIntervalAmount = amount;
-  }
-
   startHeartbeat() {
     const heartbeat = {
       MessageType: "UnsequencedHeartbeat"
     };
 
     const heartbeatTime = Math.max(parseInt(this.heartbeatIntervalAmount), 2000) - 1000;
-    this.heartbeatInterval = setInterval(() =>this.send(heartbeat), heartbeatTime);
+    this.heartbeatInterval = setInterval(() => this.send(heartbeat), heartbeatTime);
   }
 
   stopHeartbeat() {

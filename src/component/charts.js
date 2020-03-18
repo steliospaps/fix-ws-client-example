@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import React, {useState, useEffect} from 'react';
+import {format} from 'date-fns';
 import ChartCandlestick from './chart-candlestick';
-import "react-datepicker/dist/react-datepicker.css";
-import { Button } from 'shards-react';
+import 'react-datepicker/dist/react-datepicker.css';
+import {Button} from 'shards-react';
 import ChartService from '../services/chart-service';
-import { SUBSCRIPTION_REQUEST_TYPE } from '../services/ig-websocket-service';
-import  '../styles/charts.css';
-import { usePrevious } from './hooks/custom-hooks';
+import {SUBSCRIPTION_REQUEST_TYPE} from '../services/websocket-connection';
+import {usePrevious} from './hooks/custom-hooks';
+import '../styles/charts.css';
 
 const RESOLUTION = {
   DAY: "DAY",
@@ -24,29 +24,52 @@ const RESOLUTION_SELECTION = {
   FIVE_MIN: "5 mins",
   SECOND: "1s",
   TICK: "Tick"
-}
+};
 
 const DIRECTION = {
   BID: "Bid",
   ASK: "Offer"
-}
+};
 
 export const CHART_DATE_FORMAT = "yyyyMMdd-HH:mm:ss.SSS";
 
-export default function Charts({ service, subscribedSymbol, subscribedReqId, symbol, direction, containerWidth, candleSubscriptionData, candleData }) {
-  const [ chartInterval, setChartInterval ] = useState(RESOLUTION.DAY);
-  const [ chartService, setChartService ] = useState(null);
-  const prevSymbol = usePrevious(symbol);
+export default function Charts({service, symbol, securityId, direction, candleSubscriptionData, candleData}) {
+  const [chartInterval, setChartInterval] = useState(RESOLUTION.DAY);
+  const [chartService, setChartService] = useState(null);
+  const [containerWidth, setContainerWidth] = useState(null);
+  const prevSymbol = usePrevious(securityId);
   const prevInterval = usePrevious(chartInterval);
+
+  const chartContainer = document.querySelector('.pre-trade-container .chart-container');
+
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(chartContainer.getBoundingClientRect().width);
+    };
+    if (chartContainer) {
+      setContainerWidth(chartContainer.getBoundingClientRect().width);
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize, true);
+    }
+  }, [chartContainer]);
 
   useEffect(() => {
     if (!chartService) {
       setChartService(new ChartService(service));
     }
+
+    return () => {
+      if (chartService) {
+        chartService.unsubscribeAll();
+      }
+    }
   }, [chartService, service]);
 
   useEffect(() => {
-    function requestChartSnapshot(symbol) {
+    function requestChartSnapshot(securityId) {
       let startDate = new Date();
       if (chartInterval === RESOLUTION.DAY) {
         startDate.setMonth(startDate.getMonth() - 1);
@@ -57,7 +80,7 @@ export default function Charts({ service, subscribedSymbol, subscribedReqId, sym
       }
 
       chartService.getChartsSnapshot({
-        symbol,
+        symbol: securityId,
         startDate: format(startDate, CHART_DATE_FORMAT),
         endDate: format(new Date(), CHART_DATE_FORMAT),
         interval: chartInterval,
@@ -68,9 +91,9 @@ export default function Charts({ service, subscribedSymbol, subscribedReqId, sym
       return ((previous && previous !== current));
     }
 
-    if (chartService && symbol && direction) {
-      if (isDifferentFromPrevious(symbol, prevSymbol) || !prevSymbol ||
-          isDifferentFromPrevious(chartInterval, prevInterval)) {
+    if (chartService && securityId && direction) {
+      if (isDifferentFromPrevious(securityId, prevSymbol) || !prevSymbol ||
+        isDifferentFromPrevious(chartInterval, prevInterval)) {
         if (prevSymbol) {
           chartService.getChartDataSubscription({
             symbol: prevSymbol,
@@ -78,16 +101,16 @@ export default function Charts({ service, subscribedSymbol, subscribedReqId, sym
             type: SUBSCRIPTION_REQUEST_TYPE.UNSUBSCRIBE
           });
         }
-        requestChartSnapshot(symbol);
+        requestChartSnapshot(securityId);
         chartService.getChartDataSubscription({
-          symbol,
+          symbol: securityId,
           interval: chartInterval,
           type: SUBSCRIPTION_REQUEST_TYPE.SUBSCRIBE
         });
       }
     }
 
-  }, [ symbol, chartInterval, chartService, direction, prevSymbol, prevInterval ]);
+  }, [securityId, chartInterval, chartService, direction, prevSymbol, prevInterval]);
 
   function handleResolutionSelection(resolution) {
     setChartInterval(resolution);
@@ -98,20 +121,21 @@ export default function Charts({ service, subscribedSymbol, subscribedReqId, sym
       <div>
         <h3>{symbol}</h3>
         <div className="chart-resolutions">
-          {Object.keys(RESOLUTION_SELECTION).map(resolution => 
-            <Button theme="secondary" 
-              onClick={() => handleResolutionSelection(resolution)} key={resolution}>
+          {Object.keys(RESOLUTION_SELECTION).map(resolution =>
+            <Button theme="secondary"
+                    onClick={() => handleResolutionSelection(resolution)} key={resolution}>
               {RESOLUTION_SELECTION[resolution]}
             </Button>
           )}
         </div>
+        {containerWidth &&
         <ChartCandlestick
-          symbol={symbol}
           data={candleData}
           direction={DIRECTION[direction]}
           width={containerWidth}
           latestTick={candleSubscriptionData}
         />
+        }
       </div>
     </div>
   )

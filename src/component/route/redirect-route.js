@@ -9,7 +9,7 @@ export default function RedirectRoute({ children, condition, ...rest }) {
         condition ? (
           <Redirect
             to={{
-              pathname: "/pre-trade",
+              pathname: "/trade",
               state: { from: location }
             }}
           />

@@ -1,0 +1,18 @@
+.symbol-list .list-group-item {
+    cursor: pointer;
+}
+
+.symbol-list .list-group-item:hover, .symbol-list--selected .symbol-list-item-selected {
+    background-color: #d65f78;
+    color: #ffffff;
+}
+
+.symbol-list .symbol-list--not-selected {
+    height: 80vh;
+    overflow-y: auto;
+    margin-bottom: 33px;
+}
+
+.symbol-list .symbol-list--selected {
+    margin-bottom: 10px;
+}
