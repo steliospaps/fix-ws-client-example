@@ -20,7 +20,7 @@ export default function Order({service, priceLevel, side, securityId, errorMessa
   const [lastOrderedId, setLastOrderedId] = useState();
 
   const [currency, setCurrency] = useState("USD");
-  const [account, setAccount] = useState("LULPG");
+  const [account, setAccount] = useState("");
 
   const [ currentOrderStatus, setCurrentOrderStatus ] = useState();
   const [ confirmTimer, setConfirmTimer ] = useState();
