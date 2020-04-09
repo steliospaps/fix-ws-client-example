@@ -58,7 +58,7 @@ export default class WebsocketConnection {
 
   sendEstablish(sessionId, heartbeat) {
     const timestamp = this._generateTimestamp();
-    this.heartbeatIntervalAmount = heartbeat;
+    this.heartbeatIntervalAmount = heartbeat || 30000;
     const establish = {
       MessageType:"Establish",
       Timestamp: timestamp,

@@ -92,9 +92,9 @@ export default function Login({preTradeService, tradeService, authService, messa
             <h3>Login</h3>
             <Form>
               <FormGroup>
-                <InputField autocomplete="on" value={identifier} labelName={"Username"} id="username" type="text"
+                <InputField autoComplete="on" value={identifier} labelName={"Username"} id="username" type="text"
                             onChange={(e) => setIdentifier(e.target.value)} onInput={(e) => setIdentifier(e.target.value)}/>
-                <InputField autocomplete="on" value={password} labelName={"Password"} id="password" type="password"
+                <InputField autoComplete="on" value={password} labelName={"Password"} id="password" type="password"
                             onChange={(e) => setPassword(e.target.value)} onInput={(e) => setPassword(e.target.value)}/>
 
                 <label htmlFor="auth-type">Auth Type: </label>
