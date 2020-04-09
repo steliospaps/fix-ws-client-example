@@ -19,14 +19,6 @@ REACT_APP_CLIENT_HEARTBEAT=30000
 
 ```
 
-##### Websocket URLs
-
-| ENV | Application | URL  |
-| ----|:----:| ---:|
-| TEST | Pretrade | wss://net-otapr.ig.com/pretrade |
-| TEST | Trade | wss://net-otapr.ig.com/trade |
-
-
 ### Running Application
 Install [NPM (Node Package Manager)](https://nodejs.org/en/)
 
