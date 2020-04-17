@@ -9,7 +9,7 @@ export default class OrderService {
         this.websocketService = tradeWebsocket;
     }
 
-    placeOrder({ account, securityId, side, orderQty, orderType, price, currency, timeInForce, stopPx  }) {
+    placeOrder({ account, securityId, side, orderQty, orderType, price, currency, timeInForce, stopPx, expiry }) {
         const clOrdID = this.orderIdService.generateRequestId();
         let request = {
             ...buildMsgType("NewOrderSingle"),
@@ -23,7 +23,7 @@ export default class OrderService {
             OrderQty: orderQty,
             OrdType: orderType,
             Currency: currency,
-            TimeInForce: timeInForce
+            TimeInForce: timeInForce,
         };
 
         if (price) {
@@ -32,6 +32,10 @@ export default class OrderService {
 
         if(stopPx) {
             request.StopPx = stopPx;
+        }
+
+        if (expiry) {
+          request.ExpireTime = expiry;
         }
 
         this.websocketService.send(request);
