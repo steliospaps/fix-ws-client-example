@@ -51,9 +51,7 @@ export default function Order({service, priceLevel, side, securityId, errorMessa
   ]);
 
   useEffect(() => {
-    if (!orderService && service) {
-      setOrderService(new OrderService(service));
-    }
+    !orderService && service && setOrderService(new OrderService(service));
   }, [orderService, service]);
 
   useEffect(() => {

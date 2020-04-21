@@ -32,27 +32,20 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   const serviceQuoteLength = quoteService ? quoteService.getSubscribedQuotes().length : 0;
 
   useEffect(() => {
-    if (!quoteService) {
-      setQuoteService(new QuoteService(preTradeService));
-    }
+    !quoteService && setQuoteService(new QuoteService(preTradeService));
 
     return () => {
-      if (quoteService) {
-        quoteService.unsubscribeAll();
-      }
+      quoteService && quoteService.unsubscribeAll();
+
     }
   }, [quoteService, preTradeService]);
 
   useEffect(() => {
-    if (!quotesArr) {
-      setQuotesArr([]);
-    }
+    !quotesArr && setQuotesArr([]);
   }, [quotesArr]);
 
   useEffect(() => {
-    if (quoteService && serviceQuoteLength) {
-      setSubscribedQuotes(quoteService.getSubscribedQuotes().map(quoteRequest => quoteRequest.securityId));
-    }
+    quoteService && serviceQuoteLength && setSubscribedQuotes(quoteService.getSubscribedQuotes().map(quoteRequest => quoteRequest.securityId));
   }, [quoteService, serviceQuoteLength]);
 
   useEffect(() => {

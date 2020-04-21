@@ -54,7 +54,7 @@ export default function App() {
   const [ tradeUrl, setTradeUrl ] = useState(REACT_APP_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.TRADE);
   const normalClose = 1000;
   const [currency, setCurrency] = useState("USD");
-  const [account, setAccount] = useState("LTS4G");
+  const [account, setAccount] = useState("");
 
   useEffect(() => {
     setAuthService(new OAuthService());
@@ -63,15 +63,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!positionService && tradeService) {
-      setPositionService(new PositionService(tradeService));
-    }
+    !positionService && tradeService && setPositionService(new PositionService(tradeService));
+
   }, [positionService, tradeService]);
 
   useEffect(() => {
     const { MessageType, Source } = loginMessage;
     if (positionService && MessageType === "EstablishmentAck" && Source === WEBSOCKET_SOURCE.TRADE) {
-      const account = "LTS4G";
+      const account = "";
       setAccount(account);
       positionService.getPositions({ account });
     }
