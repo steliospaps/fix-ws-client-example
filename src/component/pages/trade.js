@@ -19,7 +19,7 @@ const SIDE = {
   ASK: "Sell"
 };
 
-export default function Trade({ quoteMessage, tradeMessage, preTradeService, tradeService, isEstablish, candleData, candleSubscriptionData, securityList }) {
+export default function Trade({ quoteMessage, tradeMessage, preTradeService, tradeService, isEstablish, candleData, candleSubscriptionData, securityList, account, currency }) {
   const [ securityId, setSecurityId ] = useState(null);
   const [ direction, setDirection ] = useState(null);
   const [ selectedClass, setSelectedClass ] = useState(null);
@@ -188,6 +188,8 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
             <Row>
               <Order
                   service={tradeService}
+                  account={account}
+                  currency={currency}
                   errorMessage={tradeMessage.Text}
                   rejectReason={tradeMessage.OrdRejReason}
                   orderId={tradeMessage.ClOrdID}

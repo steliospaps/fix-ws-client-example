@@ -6,12 +6,13 @@ import OAuthService from './services/auth-service';
 import Login from './component/pages/login';
 import Trade from './component/pages/trade';
 import Websocket from './services/websocket';
-import AuthenticatedRoute from './component/route/authenticated-route';
-import RedirectRoute from './component/route/redirect-route';
+import AuthenticatedRoute from './component/route-guard/authenticated-route';
+import RedirectRoute from './component/route-guard/redirect-route';
 
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'shards-ui/dist/css/shards.min.css';
+import PositionService from './services/position-service';
 
 const { REACT_APP_TRADE_WEBSOCKET_URL, REACT_APP_PRE_TRADE_WEBSOCKET_URL  } = process.env;
 
@@ -47,16 +48,34 @@ export default function App() {
   const [ quoteMessage, setQuoteMessage ] = useState({});
   const [ securityListMessage, setSecurityListMessage ] = useState(null);
   const [ tradeMessage, setTradeMessage ] = useState({});
+  const [ positionService, setPositionService ] = useState();
 
   const [ preTradeUrl, setPreTradeUrl ] = useState(REACT_APP_PRE_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.PRE_TRADE);
   const [ tradeUrl, setTradeUrl ] = useState(REACT_APP_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.TRADE);
   const normalClose = 1000;
+  const [currency, setCurrency] = useState("USD");
+  const [account, setAccount] = useState("LTS4G");
 
   useEffect(() => {
     setAuthService(new OAuthService());
     setPreTradeService(new WebsocketConnection(REACT_APP_PRE_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.PRE_TRADE));
     setTradeService(new WebsocketConnection(REACT_APP_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.TRADE));
   }, []);
+
+  useEffect(() => {
+    if (!positionService && tradeService) {
+      setPositionService(new PositionService(tradeService));
+    }
+  }, [positionService, tradeService]);
+
+  useEffect(() => {
+    const { MessageType, Source } = loginMessage;
+    if (positionService && MessageType === "EstablishmentAck" && Source === WEBSOCKET_SOURCE.TRADE) {
+      const account = "LTS4G";
+      setAccount(account);
+      positionService.getPositions({ account });
+    }
+  }, [loginMessage, positionService]);
 
   function resetPreTradeState(e) {
     if (e !== normalClose) {
@@ -243,6 +262,8 @@ export default function App() {
                   candleData={historicCandleData}
                   candleSubscriptionData={chartSubscriptionData}
                   securityList={securityListMessage}
+                  account={account}
+                  currency={currency}
                 />
               </AuthenticatedRoute>
             </Switch>

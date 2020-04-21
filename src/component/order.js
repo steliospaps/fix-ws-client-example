@@ -22,7 +22,7 @@ const TIME_IN_FORCE = {
   IMMEDIATE_OR_CANCEL: "ImmediateOrCancel",
 }
 
-export default function Order({service, priceLevel, side, securityId, errorMessage, orderId, orderStatus, rejectReason}) {
+export default function Order({service, priceLevel, side, securityId, errorMessage, orderId, orderStatus, rejectReason, account, currency }) {
   const [orderService, setOrderService] = useState(null);
   const [price, setPrice] = useState("");
   const [orderQty, setOrderQty] = useState("1");
@@ -32,10 +32,6 @@ export default function Order({service, priceLevel, side, securityId, errorMessa
   const [expiry, setExpiry] = useState();
 
   const [lastOrderedId, setLastOrderedId] = useState();
-
-  const [currency, setCurrency] = useState("USD");
-  const [account, setAccount] = useState("");
-
   const [ currentOrderStatus, setCurrentOrderStatus ] = useState();
   const [ confirmTimer, setConfirmTimer ] = useState();
 
