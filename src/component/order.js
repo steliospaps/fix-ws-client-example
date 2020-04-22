@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from "react";
 import {Col, Button} from "shards-react";
 import InputField from "./ui/input-field";
-import OrderService from "../services/order-service";
 import SelectField from "./ui/select-field";
 import DatePicker from "react-datepicker";
 import { DATETIME_FORMAT } from "../services/websocket-connection";
@@ -22,8 +21,7 @@ const TIME_IN_FORCE = {
   IMMEDIATE_OR_CANCEL: "ImmediateOrCancel",
 }
 
-export default function Order({service, priceLevel, side, securityId, errorMessage, orderId, orderStatus, rejectReason, account, currency }) {
-  const [orderService, setOrderService] = useState(null);
+export default function Order({orderService, priceLevel, side, securityId, errorMessage, orderId, orderStatus, rejectReason, account, currency }) {
   const [price, setPrice] = useState("");
   const [orderQty, setOrderQty] = useState("1");
   const [orderType, setOrderType] = useState(ORDER_TYPES.MARKET);
@@ -49,10 +47,6 @@ export default function Order({service, priceLevel, side, securityId, errorMessa
     {name: "Good Till Date", value: TIME_IN_FORCE.GOOD_TILL_DATE},
     {name: "Immediate or Cancel", value: TIME_IN_FORCE.IMMEDIATE_OR_CANCEL},
   ]);
-
-  useEffect(() => {
-    !orderService && service && setOrderService(new OrderService(service));
-  }, [orderService, service]);
 
   useEffect(() => {
     setPrice(priceLevel);

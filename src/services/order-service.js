@@ -1,9 +1,11 @@
 import RequestIDService from "./request-id-service";
 import {buildMsgType, generateSendingTime} from "./utils";
+import {SUBSCRIPTION_REQUEST_TYPE} from "./websocket-connection";
 
 export default class OrderService {
     websocketService = null;
     orderIdService = new RequestIDService("order");
+    orderStatusIdService = new RequestIDService("order-status");
 
     constructor(tradeWebsocket) {
         this.websocketService = tradeWebsocket;
@@ -40,5 +42,18 @@ export default class OrderService {
 
         this.websocketService.send(request);
         return clOrdID;
+    }
+
+    getOrderMassStatus({ account }) {
+        const MassStatusReqID = this.orderStatusIdService.generateRequestId();
+        const request = {
+            ...buildMsgType("OrderMassStatusRequest"),
+            MassStatusReqType: "StatusForOrdersForAPartyID",
+            SubscriptionRequestType: SUBSCRIPTION_REQUEST_TYPE.SUBSCRIBE,
+            MassStatusReqID,
+            Account: account
+        };
+
+        this.websocketService.send(request);
     }
 }

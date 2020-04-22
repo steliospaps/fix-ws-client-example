@@ -9,6 +9,7 @@ import SymbolList from '../symbol-list';
 import PerformanceMetrics from "../../performance-metrics";
 import '../../styles/pre-trade.css';
 import Order from "../order";
+import OrderService from "../../services/order-service";
 
 const DEFAULT_SYMBOL_SUBSCRIPTIONS = [
   'GBP/USD',
@@ -28,16 +29,24 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   const [ symbol, setSymbol ] = useState(null);
   const [ quotesArr, setQuotesArr ] = useState([]);
   const [ selectedMarket, setSelectedMarket ] = useState({ priceLevel: "", side: "", securityId: "" });
+  const [orderService, setOrderService] = useState(null);
 
   const serviceQuoteLength = quoteService ? quoteService.getSubscribedQuotes().length : 0;
 
   useEffect(() => {
+    !orderService && tradeService && setOrderService(new OrderService(tradeService));
+  }, [orderService, tradeService]);
+
+  useEffect(() => {
+    const getOrderStatus = () => orderService && account && orderService.getOrderMassStatus({ account });
+    getOrderStatus();
+  }, [orderService, account]);
+
+  useEffect(() => {
     !quoteService && setQuoteService(new QuoteService(preTradeService));
 
-    return () => {
-      quoteService && quoteService.unsubscribeAll();
+    return () => quoteService && quoteService.unsubscribeAll();
 
-    }
   }, [quoteService, preTradeService]);
 
   useEffect(() => {
@@ -180,7 +189,7 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
             {symbol && securityId && direction &&
             <Row>
               <Order
-                  service={tradeService}
+                  orderService={orderService}
                   account={account}
                   currency={currency}
                   errorMessage={tradeMessage.Text}
