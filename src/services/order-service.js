@@ -6,6 +6,7 @@ export default class OrderService {
     websocketService = null;
     orderIdService = new RequestIDService("order");
     orderStatusIdService = new RequestIDService("order-status");
+    orderCancelIdService = new RequestIDService("order-cancel");
 
     constructor(tradeWebsocket) {
         this.websocketService = tradeWebsocket;
@@ -42,6 +43,23 @@ export default class OrderService {
 
         this.websocketService.send(request);
         return clOrdID;
+    }
+
+    cancelOrder({ OrderID, OrderQty, SecurityID, Side, Account }) {
+        const ClOrdID = this.orderCancelIdService.generateRequestId();
+        const request = {
+          ...buildMsgType("OrderCancelRequest"),
+          TransactTime: generateSendingTime(),
+          OrderID,
+          ClOrdID,
+          Account,
+          OrderQty,
+          SecurityID,
+          SecurityIDSource: "MarketplaceAssignedIdentifier",
+          Side
+        };
+
+        this.websocketService.send(request);
     }
 
     getOrderMassStatus({ account }) {

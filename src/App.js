@@ -190,7 +190,7 @@ export default function App() {
   }
 
   return (
-    <div>
+    <div className="App">
       <Websocket
         onMessage={handlePreTradeMessages}
         onOpen={() => {setPreTradeAttempts(0); setIsPreTradeConnected(true)}}

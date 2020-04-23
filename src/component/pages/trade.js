@@ -10,6 +10,7 @@ import PerformanceMetrics from "../../performance-metrics";
 import '../../styles/pre-trade.css';
 import Order from "../order";
 import OrderService from "../../services/order-service";
+import ExecutionReportService from '../../services/execution-report-service';
 
 const DEFAULT_SYMBOL_SUBSCRIPTIONS = [
   'GBP/USD',
@@ -30,8 +31,11 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   const [ quotesArr, setQuotesArr ] = useState([]);
   const [ selectedMarket, setSelectedMarket ] = useState({ priceLevel: "", side: "", securityId: "" });
   const [orderService, setOrderService] = useState(null);
+  const [workingOrders, setWorkingOrders] = useState([]);
+  const [executionReportService] = useState(new ExecutionReportService());
 
   const serviceQuoteLength = quoteService ? quoteService.getSubscribedQuotes().length : 0;
+  const executionReportLength = executionReportService && executionReportService.getExecutionReports().length;
 
   useEffect(() => {
     !orderService && tradeService && setOrderService(new OrderService(tradeService));
@@ -46,7 +50,6 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
     !quoteService && setQuoteService(new QuoteService(preTradeService));
 
     return () => quoteService && quoteService.unsubscribeAll();
-
   }, [quoteService, preTradeService]);
 
   useEffect(() => {
@@ -56,6 +59,15 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   useEffect(() => {
     quoteService && serviceQuoteLength && setSubscribedQuotes(quoteService.getSubscribedQuotes().map(quoteRequest => quoteRequest.securityId));
   }, [quoteService, serviceQuoteLength]);
+
+  useEffect(() => {
+    const update = (message) => executionReportService && executionReportService.updateExecutionReport(message);
+    tradeMessage && tradeMessage.MsgType === "ExecutionReport" && update(tradeMessage);
+  }, [executionReportService, tradeMessage]);
+
+  useEffect(() => {
+    executionReportService && executionReportLength > 0 && setWorkingOrders(executionReportService.getWorkingOrders());
+  }, [executionReportService, executionReportLength]);
 
   useEffect(() => {
     if (isEstablish && securityList && quoteService) {
@@ -143,8 +155,20 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
     }
   }
 
+  function handleCancelOrder(order) {
+    order.Account = account;
+    orderService.cancelOrder(order);
+  }
+
   return (
       <div className="pre-trade-container">
+        <Row>
+          <Col>
+            {workingOrders.map(item => {
+              return <div>{item.OrderID} - {item.Instrument} <button onClick={() => handleCancelOrder(item)}>Cancel</button></div>;
+            })}
+          </Col>
+        </Row>
         <Row>
           <Col md="3" lg="3">
             <SymbolList service={preTradeService} selectedSymbols={subscribedQuotes} securityList={securityList} onSecurityItemSelected={handleQuoteSelection}/>
@@ -203,7 +227,6 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
             </Row>}
           </Col>
         </Row>
-
       </div>
   );
 }
