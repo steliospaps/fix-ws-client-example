@@ -3,6 +3,7 @@ export default class ExecutionReportService {
   executionReports = [];
 
   updateExecutionReport(execReport) {
+    console.log(execReport);
     const execReportFoundIndex = this.executionReports.findIndex(e => e.OrderID === execReport.OrderID);
     if (execReportFoundIndex > -1) {
       if (execReport.ExecType === "Canceled") {

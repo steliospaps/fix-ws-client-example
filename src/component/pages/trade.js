@@ -11,6 +11,7 @@ import '../../styles/pre-trade.css';
 import Order from "../order";
 import OrderService from "../../services/order-service";
 import ExecutionReportService from '../../services/execution-report-service';
+import WorkingOrders from '../working-orders';
 
 const DEFAULT_SYMBOL_SUBSCRIPTIONS = [
   'GBP/USD',
@@ -21,7 +22,7 @@ const SIDE = {
   ASK: "Sell"
 };
 
-export default function Trade({ quoteMessage, tradeMessage, preTradeService, tradeService, isEstablish, candleData, candleSubscriptionData, securityList, account, currency }) {
+export default function Trade({ quoteMessage, tradeMessage, preTradeService, tradeService, isEstablish, candleData, candleSubscriptionData, securityList = [], account}) {
   const [ securityId, setSecurityId ] = useState(null);
   const [ direction, setDirection ] = useState(null);
   const [ selectedClass, setSelectedClass ] = useState(null);
@@ -33,6 +34,7 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   const [orderService, setOrderService] = useState(null);
   const [workingOrders, setWorkingOrders] = useState([]);
   const [executionReportService] = useState(new ExecutionReportService());
+  const [currency, setCurrency] = useState("");
 
   const serviceQuoteLength = quoteService ? quoteService.getSubscribedQuotes().length : 0;
   const executionReportLength = executionReportService && executionReportService.getExecutionReports().length;
@@ -61,12 +63,18 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   }, [quoteService, serviceQuoteLength]);
 
   useEffect(() => {
+    const setSecurityIdSymbol = (message) => {
+      const { Symbol } = securityList.find(o => o.SecurityID === message.SecurityID);
+      message.SecurityIdSymbol = Symbol;
+      return message;
+    };
     const update = (message) => executionReportService && executionReportService.updateExecutionReport(message);
-    tradeMessage && tradeMessage.MsgType === "ExecutionReport" && update(tradeMessage);
-  }, [executionReportService, tradeMessage]);
+    tradeMessage && tradeMessage.MsgType === "ExecutionReport"
+      && setSecurityIdSymbol(tradeMessage) && update(tradeMessage);
+  }, [executionReportService, tradeMessage, securityList]);
 
   useEffect(() => {
-    executionReportService && executionReportLength > 0 && setWorkingOrders(executionReportService.getWorkingOrders());
+    executionReportService && setWorkingOrders(executionReportService.getWorkingOrders());
   }, [executionReportService, executionReportLength]);
 
   useEffect(() => {
@@ -126,6 +134,8 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   }, [quotesArr, subscribedQuotes]);
 
   function selectChart({ direction: quoteDirection, securityId: quoteSecurityId, symbol: quoteSymbol, value }) {
+    const dealableCurrency = securityList.find(s => s.SecurityID === quoteSecurityId).Currency;
+    setCurrency(dealableCurrency);
     setSelectedMarket({ side: SIDE[quoteDirection], priceLevel: value, securityId: quoteSecurityId });
     if (direction && securityId && (direction === quoteDirection) && (securityId === quoteSecurityId)) {
       setDirection(null);
@@ -162,13 +172,6 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
 
   return (
       <div className="pre-trade-container">
-        <Row>
-          <Col>
-            {workingOrders.map(item => {
-              return <div>{item.OrderID} - {item.Instrument} <button onClick={() => handleCancelOrder(item)}>Cancel</button></div>;
-            })}
-          </Col>
-        </Row>
         <Row>
           <Col md="3" lg="3">
             <SymbolList service={preTradeService} selectedSymbols={subscribedQuotes} securityList={securityList} onSecurityItemSelected={handleQuoteSelection}/>
@@ -225,6 +228,11 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
                   securityId={selectedMarket.securityId}
               />
             </Row>}
+            <Row>
+              <Col>
+                <WorkingOrders orders={workingOrders} onCancelOrder={handleCancelOrder} />
+              </Col>
+            </Row>
           </Col>
         </Row>
       </div>

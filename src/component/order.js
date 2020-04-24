@@ -27,7 +27,7 @@ export default function Order({orderService, priceLevel, side, securityId, error
   const [orderType, setOrderType] = useState(ORDER_TYPES.MARKET);
   const [timeInForce, setTimeInForce] = useState(TIME_IN_FORCE.FILL_OR_KILL);
   const [displayDate, setDisplayDate] = useState(new Date());
-  const [expiry, setExpiry] = useState();
+  const [expiry, setExpiry] = useState(format(new Date(), DATETIME_FORMAT));
 
   const [lastOrderedId, setLastOrderedId] = useState();
   const [ currentOrderStatus, setCurrentOrderStatus ] = useState();

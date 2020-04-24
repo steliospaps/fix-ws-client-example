@@ -53,7 +53,6 @@ export default function App() {
   const [ preTradeUrl, setPreTradeUrl ] = useState(REACT_APP_PRE_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.PRE_TRADE);
   const [ tradeUrl, setTradeUrl ] = useState(REACT_APP_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.TRADE);
   const normalClose = 1000;
-  const [currency, setCurrency] = useState("USD");
   const [account, setAccount] = useState("");
 
   useEffect(() => {
@@ -262,7 +261,6 @@ export default function App() {
                   candleSubscriptionData={chartSubscriptionData}
                   securityList={securityListMessage}
                   account={account}
-                  currency={currency}
                 />
               </AuthenticatedRoute>
             </Switch>
