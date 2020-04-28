@@ -12,6 +12,8 @@ import Order from "../order";
 import OrderService from "../../services/order-service";
 import ExecutionReportService from '../../services/execution-report-service';
 import WorkingOrders from '../working-orders';
+import Positions from '../positions';
+import PositionReportService from '../../services/position-report-service';
 
 const DEFAULT_SYMBOL_SUBSCRIPTIONS = [
   'GBP/USD',
@@ -33,11 +35,14 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   const [ selectedMarket, setSelectedMarket ] = useState({ priceLevel: "", side: "", securityId: "" });
   const [orderService, setOrderService] = useState(null);
   const [workingOrders, setWorkingOrders] = useState([]);
+  const [positions, setPositions] = useState([]);
   const [executionReportService] = useState(new ExecutionReportService());
+  const [positionsService] = useState(new PositionReportService());
   const [currency, setCurrency] = useState("");
 
   const serviceQuoteLength = quoteService ? quoteService.getSubscribedQuotes().length : 0;
   const executionReportLength = executionReportService && executionReportService.getExecutionReports().length;
+  const positionReportLength = positionsService && positionsService.getPositionReports().length;
 
   useEffect(() => {
     !orderService && tradeService && setOrderService(new OrderService(tradeService));
@@ -64,7 +69,7 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
 
   useEffect(() => {
     const setSecurityIdSymbol = (message) => {
-      const { Symbol } = securityList.find(o => o.SecurityID === message.SecurityID);
+      const { Symbol } = securityList.find(s => s.SecurityID === message.SecurityID);
       message.SecurityIdSymbol = Symbol;
       return message;
     };
@@ -73,9 +78,20 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
       && setSecurityIdSymbol(tradeMessage) && update(tradeMessage);
   }, [executionReportService, tradeMessage, securityList]);
 
+  useEffect(() => executionReportService && setWorkingOrders(executionReportService.getWorkingOrders()), [executionReportService, executionReportLength]);
+
+  useEffect(() => positionsService && setPositions(positionsService.getPositionReports()), [positionsService, positionReportLength]);
+
   useEffect(() => {
-    executionReportService && setWorkingOrders(executionReportService.getWorkingOrders());
-  }, [executionReportService, executionReportLength]);
+    const setSecurityIdSymbol = (message) => {
+      const { Symbol } = securityList.find(s => s.SecurityID === message.SecurityID);
+      message.SecurityIdSymbol = Symbol;
+      return message;
+    };
+    const update = (message) => positionsService && positionsService.updatePositionReports(message);
+    tradeMessage && tradeMessage.MsgType === "PositionReport"
+      && setSecurityIdSymbol(tradeMessage) && update(tradeMessage);
+  }, [positionsService, tradeMessage, securityList]);
 
   useEffect(() => {
     if (isEstablish && securityList && quoteService) {
@@ -231,6 +247,11 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
             <Row>
               <Col>
                 <WorkingOrders orders={workingOrders} onCancelOrder={handleCancelOrder} />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Positions positions={positions}/>
               </Col>
             </Row>
           </Col>

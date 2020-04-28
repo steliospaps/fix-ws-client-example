@@ -180,7 +180,10 @@ export default function App() {
     } else if (MsgType) {
         switch(MsgType) {
           case "ExecutionReport":
-              setTradeMessage(message);
+            setTradeMessage(message);
+            break;
+          case "PositionReport":
+            setTradeMessage(message);
             break;
           default:
             console.log(message);
