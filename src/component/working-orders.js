@@ -16,7 +16,7 @@ export default function WorkingOrders({ orders = [], onCancelOrder }) {
           <ListGroupItem key={o.OrderID}>
             <span>{o.SecurityIdSymbol}</span>
             <span>{o.OrderQty}</span>
-            <span>{o.OrdType} at {o.Price}</span>
+            <span>{o.OrdType} at {o.OrdType === "Limit" ? o.Price : o.StopPx}</span>
             {o.ExpireTime && <span>{format(new Date(o.ExpireTime), "yyyy-MM-dd HH:mm")}</span>}
             <span><Button outline size="sm" theme="secondary" onClick={() => onCancelOrder(o)}>Cancel</Button></span>
           </ListGroupItem>
