@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Nav, Navbar, NavbarBrand, NavItem, NavLink, Container } from 'shards-react';
-import { BrowserRouter as Router, Link, Switch, Route} from 'react-router-dom';
+import { Container } from 'shards-react';
+import { BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 import WebsocketConnection, {WEBSOCKET_SOURCE} from './services/websocket-connection';
 import OAuthService from './services/auth-service';
 import Login from './component/pages/login';
@@ -8,11 +8,12 @@ import Trade from './component/pages/trade';
 import Websocket from './services/websocket';
 import AuthenticatedRoute from './component/route-guard/authenticated-route';
 import RedirectRoute from './component/route-guard/redirect-route';
+import PositionService from './services/position-service';
+import MainNav from './component/main-navbar';
 
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'shards-ui/dist/css/shards.min.css';
-import PositionService from './services/position-service';
 
 const { REACT_APP_TRADE_WEBSOCKET_URL, REACT_APP_PRE_TRADE_WEBSOCKET_URL  } = process.env;
 
@@ -30,30 +31,35 @@ const ENV_URL = {
 export default function App() {
   const [ isPreTradeConnected, setIsPreTradeConnected ] = useState(false);
   const [ isTradeConnected, setIsTradeConnected ] = useState(false);
-  const [ isPreTradeEstablish, setIsPreTradeEstablish ] = useState(false);
-  const [ isTradeEstablish, setIsTradeEstablish ] = useState(false);
-
-  const [ isPreTradeLoginSuccessful, setIsPreTradeLoginSuccessful ] = useState(false);
-  const [ isTradeLoginSuccessful, setIsTradeLoginSuccessful ] = useState(false);
 
   const [ preTradeAttempts, setPreTradeAttempts ] = useState(0);
   const [ tradeAttempts, setTradeAttempts ] = useState(0);
 
+  const [ authState, setAuthState ] = useState({
+    preTrade: { isEstablish: false, isLoginSuccessful: false },
+    trade: { isEstablish: false, isLoginSuccessful: false }
+  });
+  const isEstablish = authState.preTrade.isEstablish && authState.trade.isEstablish;
+  const isLoginSuccessful = authState.preTrade.isLoginSuccessful && authState.trade.isLoginSuccessful;
+
   const [ authService, setAuthService ] = useState(null);
   const [ preTradeService, setPreTradeService ] = useState(null);
-  const [ tradeService, setTradeService ] = useState(null);
-  const [ historicCandleData, setHistoricCandleData ] = useState([]);
-  const [ chartSubscriptionData, setChartSubscriptionData ] = useState({});
-  const [ loginMessage, setLoginMessage ] = useState({});
-  const [ quoteMessage, setQuoteMessage ] = useState({});
-  const [ securityListMessage, setSecurityListMessage ] = useState(null);
-  const [ tradeMessage, setTradeMessage ] = useState({});
   const [ positionService, setPositionService ] = useState();
+  const [ tradeService, setTradeService ] = useState(null);
+
+  const [ loginMessage, setLoginMessage ] = useState({});
+  const [ tradeMessage, setTradeMessage ] = useState({});
+  const [ preTradeMessages, setPreTradeMessage ] = useState({
+    Quote: null,
+    HistoricCandleResponse: { CandleData: [] },
+    ChartDataSubscriptionResponse: {},
+    SecurityList: { SecListGrp: [] }
+  });
 
   const [ preTradeUrl, setPreTradeUrl ] = useState(REACT_APP_PRE_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.PRE_TRADE);
   const [ tradeUrl, setTradeUrl ] = useState(REACT_APP_TRADE_WEBSOCKET_URL || ENV_URL.DEMO.TRADE);
-  const normalClose = 1000;
-  const [account, setAccount] = useState("");
+  const [ account, setAccount ] = useState("");
+  const websocketNormalClose = 1000;
 
   useEffect(() => {
     setAuthService(new OAuthService());
@@ -76,30 +82,30 @@ export default function App() {
   }, [loginMessage, positionService]);
 
   function resetPreTradeState(e) {
-    if (e !== normalClose) {
+    if (e !== websocketNormalClose) {
       setPreTradeAttempts(preTradeAttempts + 1);
   
       if (preTradeAttempts + 1 !== 3) {
-        resetState(preTradeService, setPreTradeService, preTradeUrl, setIsPreTradeEstablish);
+        resetState(preTradeService, setPreTradeService, preTradeUrl);
+        setAuthState({ ...authState, preTrade: { isLoginSuccessful: false, isEstablish: false } })
         resetMessages();
-        setIsPreTradeLoginSuccessful(false);
       }
     }
   }
 
   function resetTradeState(e) {
-    if (e !== normalClose) {
+    if (e !== websocketNormalClose) {
       setTradeAttempts(tradeAttempts + 1);
 
       if (tradeAttempts + 1 !== 3) {
-        resetState(tradeService, setTradeService, tradeUrl, setIsTradeEstablish);
+        resetState(tradeService, setTradeService, tradeUrl);
+        setAuthState({ ...authState, trade: { isLoginSuccessful: false, isEstablish: false } })
         setTradeMessage({});
-        setIsTradeLoginSuccessful(false);
       }
     }
   }
 
-  function resetState(service, serviceSetter, websocketUrl, establishSetter) {
+  function resetState(service, serviceSetter, websocketUrl) {
     if (service) {
       service.stopHeartbeat();
     }
@@ -107,24 +113,23 @@ export default function App() {
       serviceSetter(new WebsocketConnection(websocketUrl));
       clearTimeout(timer);
     }, 5000);
-    establishSetter(false);
   }
 
   function resetMessages() {
-    setQuoteMessage(null);
-    setHistoricCandleData([]);
-    setChartSubscriptionData({});
-    setSecurityListMessage(null);
+    setPreTradeMessage({
+      Quote: null,
+      HistoricCandleResponse: { CandleData: [] },
+      ChartDataSubscriptionResponse: {},
+      SecurityList: { SecListGrp: [] }
+    });
   }
 
   function handleLoginSuccessful(serviceType) {
     setLoginMessage({});
     if (serviceType === WEBSOCKET_SOURCE.PRE_TRADE) {
-      setIsPreTradeEstablish(true);
-      setIsPreTradeLoginSuccessful(true);
+      setAuthState({ ...authState, preTrade: { isEstablish: true, isLoginSuccessful: true } });
     } else if (serviceType === WEBSOCKET_SOURCE.TRADE) {
-      setIsTradeEstablish(true);
-      setIsTradeLoginSuccessful(true);
+      setAuthState({ ...authState, trade: { isEstablish: true, isLoginSuccessful: true } });
     }
   }
 
@@ -137,8 +142,8 @@ export default function App() {
     setTradeUrl(ENV_URL[env].TRADE);
     preTradeService.stopHeartbeat();
     tradeService.stopHeartbeat();
-    preTradeService.close(normalClose);
-    tradeService.close(normalClose);
+    preTradeService.close(websocketNormalClose);
+    tradeService.close(websocketNormalClose);
     setPreTradeService(new WebsocketConnection(ENV_URL[env].PRE_TRADE));
     setTradeService(new WebsocketConnection(ENV_URL[env].TRADE));
   }
@@ -151,22 +156,9 @@ export default function App() {
         setLoginMessage(message);
       }
     } else if (MsgType) {
-      switch(MsgType) {
-        case "Quote":
-          setQuoteMessage(message);
-          break;
-        case "HistoricCandleResponse":
-          setHistoricCandleData(message.CandleData);
-          break;
-        case "ChartDataSubscriptionResponse":
-          setChartSubscriptionData(message);
-          break;
-        case "SecurityList":
-          setSecurityListMessage(message.SecListGrp);
-          break;
-        default:
-          console.log(message);
-      }
+      const newTradeMessages = {};
+      newTradeMessages[MsgType] = message;
+      setPreTradeMessage({ ...preTradeMessages, ...newTradeMessages });
     }
   }
 
@@ -178,16 +170,7 @@ export default function App() {
         setLoginMessage(message);
       }
     } else if (MsgType) {
-        switch(MsgType) {
-          case "ExecutionReport":
-            setTradeMessage(message);
-            break;
-          case "PositionReport":
-            setTradeMessage(message);
-            break;
-          default:
-            console.log(message);
-        }
+      setTradeMessage(message);
     }
   }
 
@@ -209,38 +192,17 @@ export default function App() {
       />
       <Router>
         <div className="App">
-          <Navbar type="dark" theme="danger" expand="md">
-            <NavbarBrand href="#">Example Client</NavbarBrand>
-            <Nav navbar>
-              {!isPreTradeLoginSuccessful && !isTradeLoginSuccessful ? (
-              <NavItem>
-                <Link className="nav-link active" to="/login">Login</Link>
-              </NavItem>) : (
-                <div style={{'display': 'inherit'}}>
-                  <NavItem>
-                    <Link className="nav-link active" to="/trade">Trade</Link>
-                  </NavItem>
-                </div>
-              )}
-            </Nav>
-            <Nav navbar className="ml-auto">
-              <NavItem>
-                {tradeAttempts > 0 || preTradeAttempts > 0 ?
-                  <NavLink active>
-                    {tradeAttempts === 3 || preTradeAttempts === 3 ? "Please try again later." : "Failed to connect, retrying..."}
-                  </NavLink> :
-                  <NavLink active>
-                    Status: {isPreTradeConnected && isTradeConnected ?  'Connected': 'Closed'}
-                  </NavLink>
-                }
-              </NavItem>
-            </Nav>
-          </Navbar>
+          <MainNav
+            isLoginSuccessful={isLoginSuccessful}
+            isConnected={isPreTradeConnected && isTradeConnected}
+            tradeAttempts={tradeAttempts}
+            preTradeAttempts={preTradeAttempts}
+          />
         </div>
         <Container>
           <div className="router-view">
             <Switch>
-              <RedirectRoute condition={isPreTradeEstablish && isTradeEstablish} path="/" exact />
+              <RedirectRoute condition={isEstablish} path="/" exact />
               <Route path="/login">
                 <Login
                   preTradeService={preTradeService}
@@ -249,20 +211,20 @@ export default function App() {
                   message={loginMessage}
                   isConnected={isPreTradeConnected && isTradeConnected}
                   onWebsocketEnvChanged={(env) => setWebsocketUrl(env)}
-                  isLoginSuccessful={isPreTradeLoginSuccessful && isTradeLoginSuccessful}
+                  isLoginSuccessful={isLoginSuccessful}
                   onLoginSuccessful={handleLoginSuccessful}
                 />
               </Route>
-              <AuthenticatedRoute condition={isPreTradeEstablish && isTradeEstablish} path="/trade">
+              <AuthenticatedRoute condition={isEstablish} path="/trade">
                 <Trade
-                  isEstablish={isPreTradeEstablish && isTradeEstablish}
-                  quoteMessage={quoteMessage}
+                  isEstablish={isEstablish}
+                  quoteMessage={preTradeMessages.Quote}
                   tradeMessage={tradeMessage}
                   preTradeService={preTradeService}
                   tradeService={tradeService}
-                  candleData={historicCandleData}
-                  candleSubscriptionData={chartSubscriptionData}
-                  securityList={securityListMessage}
+                  candleData={preTradeMessages.HistoricCandleResponse.CandleData}
+                  candleSubscriptionData={preTradeMessages.ChartDataSubscriptionResponse}
+                  securityList={preTradeMessages.SecurityList.SecListGrp}
                   account={account}
                 />
               </AuthenticatedRoute>
