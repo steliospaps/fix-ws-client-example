@@ -1,19 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import uuidv1 from 'uuid/v1';
-import {Row, Col, FormGroup, Form, FormSelect, Button} from 'shards-react';
+import {Row, Col, FormGroup, Form, Button} from 'shards-react';
 import {useHistory, useLocation} from 'react-router-dom';
-import InputField from '../ui/input-field';
 import '../../styles/login.css';
 import {WEBSOCKET_SOURCE} from "../../services/websocket-connection";
+import {UserForm, AuthTypeForm, EnvironmentForm} from '../login-form';
 
 const AUTH_TYPE = {
   OAUTH: 'oauth',
   CREDENTIALS: 'login'
-};
-
-const ENV = {
-  DEMO: 'DEMO',
-  PROD: 'PROD'
 };
 
 const AUTH_ERRORS = {
@@ -24,6 +19,10 @@ export default function Login({preTradeService, tradeService, authService, messa
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [authType, setAuthType] = useState(AUTH_TYPE.OAUTH);
+  const [ authTypes ] = useState([
+    { value: AUTH_TYPE.OAUTH, displayValue: 'OAuth' },
+    { value: AUTH_TYPE.CREDENTIALS, displayValue: 'Credentials' }
+  ]);
   const [error, setError] = useState('');
   const history = useHistory();
   const location = useLocation();
@@ -92,23 +91,19 @@ export default function Login({preTradeService, tradeService, authService, messa
             <h3>Login</h3>
             <Form>
               <FormGroup>
-                <InputField autoComplete="on" value={identifier} labelName={"Username"} id="username" type="text"
-                            onChange={(e) => setIdentifier(e.target.value)} onInput={(e) => setIdentifier(e.target.value)}/>
-                <InputField autoComplete="on" value={password} labelName={"Password"} id="password" type="password"
-                            onChange={(e) => setPassword(e.target.value)} onInput={(e) => setPassword(e.target.value)}/>
-
-                <label htmlFor="auth-type">Auth Type: </label>
-                <FormSelect id="auth-type" onChange={(e) => setAuthType(e.target.value)}>
-                  <option value={AUTH_TYPE.OAUTH}>OAuth</option>
-                  <option value={AUTH_TYPE.CREDENTIALS}>Credentials</option>
-                </FormSelect>
-                <label htmlFor="env-type">Environment: </label>
-                {process.env.REACT_APP_PRE_TRADE_WEBSOCKET_URL && process.env.REACT_APP_TRADE_WEBSOCKET_URL ? <div>Custom</div> :
-                  <FormSelect id="env-type" onChange={(e) => onWebsocketEnvChanged(e.target.value)}>
-                    <option value={ENV.DEMO}>Demo</option>
-                    <option value={ENV.PROD}>Production</option>
-                  </FormSelect>
-                }
+                <UserForm
+                  identifier={identifier}
+                  password={password}
+                  onIdentifierChanged={(id) => setIdentifier(id)}
+                  onPasswordChanged={(pass) => setPassword(pass)}
+                />
+                <AuthTypeForm
+                  authTypes={authTypes}
+                  onAuthTypeChanged={(t) => setAuthType(t)}
+                />
+                <EnvironmentForm
+                  onEnvChange={(env) => onWebsocketEnvChanged(env)}
+                />
                 <Button className="login-button" theme="secondary" onClick={handleNegotiate}>Login</Button>
               </FormGroup>
             </Form>
