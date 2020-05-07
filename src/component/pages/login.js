@@ -6,7 +6,7 @@ import '../../styles/login.css';
 import {WEBSOCKET_SOURCE} from "../../services/websocket-connection";
 import {UserForm, AuthTypeForm, EnvironmentForm} from '../login-form';
 
-const AUTH_TYPE = {
+export const AUTH_TYPE = {
   OAUTH: 'oauth',
   CREDENTIALS: 'login'
 };
@@ -19,10 +19,6 @@ export default function Login({preTradeService, tradeService, authService, messa
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [authType, setAuthType] = useState(AUTH_TYPE.OAUTH);
-  const [ authTypes ] = useState([
-    { value: AUTH_TYPE.OAUTH, displayValue: 'OAuth' },
-    { value: AUTH_TYPE.CREDENTIALS, displayValue: 'Credentials' }
-  ]);
   const [error, setError] = useState('');
   const history = useHistory();
   const location = useLocation();
@@ -98,7 +94,6 @@ export default function Login({preTradeService, tradeService, authService, messa
                   onPasswordChanged={(pass) => setPassword(pass)}
                 />
                 <AuthTypeForm
-                  authTypes={authTypes}
                   onAuthTypeChanged={(t) => setAuthType(t)}
                 />
                 <EnvironmentForm

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import InputField from './ui/input-field';
 import {FormSelect} from 'shards-react';
+import { AUTH_TYPE } from './pages/login';
 
 export function UserForm({ identifier, password, onIdentifierChanged, onPasswordChanged }) {
   return (
@@ -25,7 +26,11 @@ export function UserForm({ identifier, password, onIdentifierChanged, onPassword
   );
 }
 
-export function AuthTypeForm({ authTypes, onAuthTypeChanged }) {
+export function AuthTypeForm({ onAuthTypeChanged }) {
+  const [ authTypes ] = useState([
+    { value: AUTH_TYPE.OAUTH, displayValue: 'OAuth' },
+    { value: AUTH_TYPE.CREDENTIALS, displayValue: 'Credentials' }
+  ]);
   const renderAuthTypes = (authTypes) => authTypes.map(t =>
         <option key={t.value} value={t.value}>{t.displayValue}</option>);
   return (
