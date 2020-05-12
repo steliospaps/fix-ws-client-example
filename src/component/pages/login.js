@@ -18,6 +18,7 @@ const AUTH_ERRORS = {
 export default function Login({preTradeService, tradeService, authService, message, onLoginSuccessful, isLoginSuccessful, onWebsocketEnvChanged, isConnected}) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [accountId, setAccountId] = useState('');
   const [authType, setAuthType] = useState(AUTH_TYPE.OAUTH);
   const [error, setError] = useState('');
   const history = useHistory();
@@ -25,7 +26,7 @@ export default function Login({preTradeService, tradeService, authService, messa
 
   useEffect(() => {
     const {MessageType, Source} = message;
-    if (preTradeService && tradeService && MessageType && Source) {
+    if (preTradeService && tradeService && MessageType && Source && accountId) {
       let service;
       if (Source === WEBSOCKET_SOURCE.PRE_TRADE) {
         service = preTradeService;
@@ -39,7 +40,7 @@ export default function Login({preTradeService, tradeService, authService, messa
           break;
         case "EstablishmentAck":
           service.startHeartbeat();
-          onLoginSuccessful(Source);
+          onLoginSuccessful({ Source, accountId });
           break;
         case "NegotiationReject":
           setError("Username or password is incorrect");
@@ -51,7 +52,7 @@ export default function Login({preTradeService, tradeService, authService, messa
         authService.stopTokenRefresh();
       }
     }
-  }, [preTradeService, tradeService, authService, message, isConnected, onLoginSuccessful]);
+  }, [preTradeService, tradeService, authService, message, isConnected, accountId, onLoginSuccessful]);
 
   useEffect(() => {
     if (isLoginSuccessful) {
@@ -90,8 +91,10 @@ export default function Login({preTradeService, tradeService, authService, messa
                 <UserForm
                   identifier={identifier}
                   password={password}
+                  accountId={accountId}
                   onIdentifierChanged={(id) => setIdentifier(id)}
                   onPasswordChanged={(pass) => setPassword(pass)}
+                  onAccountIdChanged={(accountId) => setAccountId(accountId)}
                 />
                 <AuthTypeForm
                   onAuthTypeChanged={(t) => setAuthType(t)}
