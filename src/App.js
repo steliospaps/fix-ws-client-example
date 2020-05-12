@@ -19,12 +19,12 @@ const { REACT_APP_TRADE_WEBSOCKET_URL, REACT_APP_PRE_TRADE_WEBSOCKET_URL  } = pr
 
 const ENV_URL = {
   DEMO: {
-    PRE_TRADE: 'wss://demo-otapr.ig.com/pretrade',
-    TRADE: 'wss://demo-otat.ig.com/trade'
+    PRE_TRADE: 'wss://demo-iguspretrade.ig.com/pretrade',
+    TRADE: 'wss://demo-igustrade.ig.com/trade'
   },
   PROD: {
-    PRE_TRADE: 'wss://otapr.ig.com/pretrade',
-    TRADE: 'wss://otat.ig.com/trade'
+    PRE_TRADE: 'wss://iguspretrade.ig.com/pretrade',
+    TRADE: 'wss://igustrade.ig.com/trade'
   }
 };
 
