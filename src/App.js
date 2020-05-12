@@ -75,11 +75,12 @@ export default function App() {
   useEffect(() => {
     const { MessageType, Source } = loginMessage;
     if (positionService && MessageType === "EstablishmentAck" && Source === WEBSOCKET_SOURCE.TRADE) {
-      const account = "";
-      setAccount(account);
-      positionService.getPositions({ account });
+      // TODO: Fix getting accountId
+      // const account = "";
+      // setAccount(account);
+      account && positionService.getPositions({ account });
     }
-  }, [loginMessage, positionService]);
+  }, [loginMessage, positionService, account]);
 
   function resetPreTradeState(e) {
     if (e !== websocketNormalClose) {
@@ -126,10 +127,14 @@ export default function App() {
 
   function handleLoginSuccessful(serviceType) {
     setLoginMessage({});
-    if (serviceType === WEBSOCKET_SOURCE.PRE_TRADE) {
+    if (serviceType.Source === WEBSOCKET_SOURCE.PRE_TRADE) {
       setAuthState({ ...authState, preTrade: { isEstablish: true, isLoginSuccessful: true } });
-    } else if (serviceType === WEBSOCKET_SOURCE.TRADE) {
+    } else if (serviceType.Source === WEBSOCKET_SOURCE.TRADE) {
       setAuthState({ ...authState, trade: { isEstablish: true, isLoginSuccessful: true } });
+    }
+
+    if (!account) {
+      setAccount(serviceType.accountId);
     }
   }
 

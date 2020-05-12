@@ -3,7 +3,7 @@ import InputField from './ui/input-field';
 import {FormSelect} from 'shards-react';
 import { AUTH_TYPE } from './pages/login';
 
-export function UserForm({ identifier, password, onIdentifierChanged, onPasswordChanged }) {
+export function UserForm({ identifier, password, accountId, onIdentifierChanged, onPasswordChanged, onAccountIdChanged }) {
   return (
     <div className="user-form">
       <InputField
@@ -22,6 +22,14 @@ export function UserForm({ identifier, password, onIdentifierChanged, onPassword
         type="password"
         onChange={(e) => onPasswordChanged(e.target.value)}
         onInput={(e) => onPasswordChanged(e.target.value)}/>
+      <InputField
+        autoComplete="on"
+        value={accountId}
+        labelName={"Account ID"}
+        id="account-id"
+        type="text"
+        onChange={(e) => onAccountIdChanged(e.target.value)}
+        onInput={(e) => onAccountIdChanged(e.target.value)}/>
     </div>
   );
 }
