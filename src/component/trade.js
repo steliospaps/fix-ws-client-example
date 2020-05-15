@@ -3,7 +3,7 @@ import { Col, Row, Container } from 'shards-react';
 import Quote from './quote';
 import Charts from './charts';
 import Order from './order';
-import WorkingOrders from './working-orders';
+import { WorkingOrders } from './working-orders';
 import Positions from './positions';
 import PerformanceMetrics from '../performance-metrics';
 
@@ -74,12 +74,17 @@ export function Orders({ service, account, currency, errorMessage, rejectReason,
   );
 }
 
-export function Reports({ workingOrders, positions, onCancelOrder }) {
+export function Reports({ workingOrders, positions, replacedOrder, onCancelOrder, onOrderCancelReplace }) {
   return (
     <div className="reports">
       <Row>
         <Col>
-          <WorkingOrders orders={workingOrders} onCancelOrder={(o) => onCancelOrder(o)} />
+          <WorkingOrders
+            orders={workingOrders}
+            replacedOrder={replacedOrder}
+            onCancelOrder={(o) => onCancelOrder(o)}
+            onOrderCancelReplace={(o) => onOrderCancelReplace(o)}
+          />
         </Col>
       </Row>
       <Row>
