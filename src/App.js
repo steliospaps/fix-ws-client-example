@@ -69,18 +69,16 @@ export default function App() {
 
   useEffect(() => {
     !positionService && tradeService && setPositionService(new PositionService(tradeService));
-
   }, [positionService, tradeService]);
 
   useEffect(() => {
-    const { MessageType, Source } = loginMessage;
-    if (positionService && MessageType === "EstablishmentAck" && Source === WEBSOCKET_SOURCE.TRADE) {
+    if (positionService && isLoginSuccessful) {
       // TODO: Fix getting accountId
       // const account = "";
       // setAccount(account);
       account && positionService.getPositions({ account });
     }
-  }, [loginMessage, positionService, account]);
+  }, [isLoginSuccessful, positionService, account]);
 
   function resetPreTradeState(e) {
     if (e !== websocketNormalClose) {

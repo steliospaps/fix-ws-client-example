@@ -23,17 +23,22 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   const [ securityId, setSecurityId ] = useState(null);
   const [ direction, setDirection ] = useState(null);
   const [ selectedClass, setSelectedClass ] = useState(null);
-  const [ quoteService, setQuoteService ] = useState(null);
   const [ subscribedQuotes, setSubscribedQuotes ] = useState(null);
   const [ symbol, setSymbol ] = useState(null);
   const [ quotesArr, setQuotesArr ] = useState([]);
   const [ selectedMarket, setSelectedMarket ] = useState({ priceLevel: "", side: "", securityId: "" });
-  const [orderService, setOrderService] = useState(null);
+
+  const [ quoteService, setQuoteService ] = useState(null);
+  const [ orderService, setOrderService ] = useState(null);
+
   const [workingOrders, setWorkingOrders] = useState([]);
   const [positions, setPositions] = useState([]);
+
   const [executionReportService] = useState(new ExecutionReportService());
   const [positionsService] = useState(new PositionReportService());
+
   const [currency, setCurrency] = useState("");
+  const [replacedOrder, setReplacedOrder] = useState(null);
 
   const serviceQuoteLength = quoteService ? quoteService.getSubscribedQuotes().length : 0;
   const executionReportLength = executionReportService && executionReportService.getExecutionReports().length;
@@ -50,7 +55,6 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
 
   useEffect(() => {
     !quoteService && setQuoteService(new QuoteService(preTradeService));
-
     return () => quoteService && quoteService.unsubscribeAll();
   }, [quoteService, preTradeService]);
 
@@ -64,14 +68,22 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
 
   useEffect(() => {
     const setSecurityIdSymbol = (message) => {
+      if (securityList.length > 0) {
       const { Symbol } = securityList.find(s => s.SecurityID === message.SecurityID);
-      message.SecurityIdSymbol = Symbol;
-      return message;
+        message.SecurityIdSymbol = Symbol;
+        return message;
+      }
     };
     const update = (message) => executionReportService && executionReportService.updateExecutionReport(message);
     tradeMessage && tradeMessage.MsgType === "ExecutionReport"
       && setSecurityIdSymbol(tradeMessage) && update(tradeMessage);
   }, [executionReportService, tradeMessage, securityList]);
+
+  useEffect(() => {
+    if (tradeMessage.ExecType === "Replaced") {
+      setReplacedOrder(tradeMessage);
+    }
+  }, [tradeMessage]);
 
   useEffect(() => executionReportService && setWorkingOrders(executionReportService.getWorkingOrders()), [executionReportService, executionReportLength]);
 
@@ -79,9 +91,11 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
 
   useEffect(() => {
     const setSecurityIdSymbol = (message) => {
+      if (securityList.length > 0) {
       const { Symbol } = securityList.find(s => s.SecurityID === message.SecurityID);
-      message.SecurityIdSymbol = Symbol;
-      return message;
+        message.SecurityIdSymbol = Symbol;
+        return message;
+      }
     };
     const update = (message) => positionsService && positionsService.updatePositionReports(message);
     tradeMessage && tradeMessage.MsgType === "PositionReport"
@@ -177,9 +191,13 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
   }
 
   function handleCancelOrder(order) {
-    console.log(order);
     order.Account = account;
     orderService.cancelOrder(order);
+  }
+
+  function handleOrderCancelReplace(order) {
+    order.Account = account;
+    orderService.orderCancelReplace(order);
   }
 
   return (
@@ -221,7 +239,9 @@ export default function Trade({ quoteMessage, tradeMessage, preTradeService, tra
             <Reports
               workingOrders={workingOrders}
               positions={positions}
+              replacedOrder={replacedOrder}
               onCancelOrder={(o) => handleCancelOrder(o)}
+              onOrderCancelReplace={(o) => handleOrderCancelReplace(o)}
             />
           </Col>
         </Row>
