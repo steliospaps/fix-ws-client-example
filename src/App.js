@@ -83,7 +83,7 @@ export default function App() {
   function resetPreTradeState(e) {
     if (e !== websocketNormalClose) {
       setPreTradeAttempts(preTradeAttempts + 1);
-  
+
       if (preTradeAttempts + 1 !== 3) {
         resetState(preTradeService, setPreTradeService, preTradeUrl);
         setAuthState({ ...authState, preTrade: { isLoginSuccessful: false, isEstablish: false } })
@@ -206,7 +206,9 @@ export default function App() {
           <div className="router-view">
             <Switch>
               <RedirectRoute condition={isEstablish} path="/" exact />
-              <Route path="/login">
+              <RedirectRoute condition={isEstablish} path="/dev" exact />
+              <RedirectRoute condition={isEstablish} path="/index.html" exact />
+              <Route path="/dev/login">
                 <Login
                   preTradeService={preTradeService}
                   tradeService={tradeService}
@@ -218,7 +220,7 @@ export default function App() {
                   onLoginSuccessful={handleLoginSuccessful}
                 />
               </Route>
-              <AuthenticatedRoute condition={isEstablish} path="/trade">
+              <AuthenticatedRoute condition={isEstablish} path="/dev/trade">
                 <Trade
                   isEstablish={isEstablish}
                   quoteMessage={preTradeMessages.Quote}
@@ -238,4 +240,3 @@ export default function App() {
     </div>
   );
 }
-

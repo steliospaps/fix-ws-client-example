@@ -9,14 +9,14 @@ export default function RedirectRoute({ children, condition, ...rest }) {
         condition ? (
           <Redirect
             to={{
-              pathname: "/trade",
+              pathname: "/dev/trade",
               state: { from: location }
             }}
           />
         ) : (
           <Redirect
             to={{
-              pathname: "/login",
+              pathname: "/dev/login",
               state: { from: location }
             }}
           />
